@@ -8,5 +8,4 @@ data class ClienteDTO(
     val telefono: String,
     val email: String,
     val password: String,
-    val pedidos: List<PedidoDTO> = emptyList()
-)
+    )
