@@ -21,10 +21,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -32,58 +28,35 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.pizzeria.modelo.ClienteDTO
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.practicadoskotlin.R
-import com.example.practicadoskotlin.ui.validadores.validarDni
-import com.example.practicadoskotlin.ui.validadores.validarEmail
-import com.example.practicadoskotlin.ui.validadores.validarNombre
-import com.example.practicadoskotlin.ui.validadores.validarPassword
 
 @Composable
-fun RegistroScreen(onRegister: (ClienteDTO) -> Unit = {}) {
-    var dni by rememberSaveable { mutableStateOf("") }
-    var nombre by rememberSaveable { mutableStateOf("") }
-    var direccion by rememberSaveable { mutableStateOf("") }
-    var telefono by rememberSaveable { mutableStateOf("") }
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var confirmar by rememberSaveable { mutableStateOf("") }
-
-
-
-    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+fun RegistroScreen(viewModel: RegistroViewModel = viewModel()) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val transformacion =
-        if (passwordVisible) VisualTransformation.None
-        else PasswordVisualTransformation(mask='*')
+        if (uiState.passwordVisible) VisualTransformation.None
+        else PasswordVisualTransformation(mask = '*')
 
     val iconoOjo: @Composable () -> Unit = {
-        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+        IconButton(onClick = viewModel::onTogglePasswordVisible) {
             Icon(
-                imageVector = if (passwordVisible) Icons.Filled.VisibilityOff
+                imageVector = if (uiState.passwordVisible) Icons.Filled.VisibilityOff
                 else Icons.Filled.Visibility,
-                contentDescription = if (passwordVisible) "Ocultar contraseña"
+                contentDescription = if (uiState.passwordVisible) "Ocultar contraseña"
                 else "Mostrar contraseña"
             )
         }
     }
-    val dniError = validarDni(dni)
-    val nombreError = validarNombre(nombre)
-    val emailError = validarEmail(email)
-    val passwordError = validarPassword(password)
-    val confirmError = if (confirmar.isNotEmpty() && confirmar != password)
-        "Las contraseñas no coinciden" else null
 
-    val formularioValido =
-        listOf(dni, nombre, direccion, telefono, email, password, confirmar).all { it.isNotBlank() } &&
-                dniError == null && nombreError == null && emailError == null &&
-                passwordError == null && confirmError == null
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Image(
             painter = painterResource(R.drawable.pizza),
@@ -96,67 +69,60 @@ fun RegistroScreen(onRegister: (ClienteDTO) -> Unit = {}) {
         )
         Text("Registro", style = MaterialTheme.typography.titleLarge)
 
-        OutlinedTextField(
-            value = dni, onValueChange = { dni = it },
-            label = { Text("DNI") }, modifier = Modifier.fillMaxWidth()
+        CampoTexto(uiState.dni, viewModel::onDniChange, "DNI", uiState.dniError)
+        CampoTexto(uiState.nombre, viewModel::onNombreChange, "Nombre", uiState.nombreError)
+        CampoTexto(uiState.direccion, viewModel::onDireccionChange, "Dirección", null)
+        CampoTexto(
+            uiState.telefono, viewModel::onTelefonoChange, "Teléfono", null,
+            keyboardType = KeyboardType.Phone
         )
-        OutlinedTextField(
-            value = nombre, onValueChange = { nombre = it },
-            label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth()
+        CampoTexto(
+            uiState.email, viewModel::onEmailChange, "Email", uiState.emailError,
+            keyboardType = KeyboardType.Email
         )
-        OutlinedTextField(
-            value = direccion, onValueChange = { direccion = it },
-            label = { Text("Dirección") }, modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = telefono, onValueChange = { telefono = it },
-            label = { Text("Teléfono") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = email, onValueChange = { email = it },
-            label = { Text("Email") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            modifier = Modifier.fillMaxWidth()
-        )
-        OutlinedTextField(
-            value = password, onValueChange = { password = it },
-            label = { Text("Contraseña") },
+        CampoTexto(
+            uiState.password, viewModel::onPasswordChange, "Contraseña", uiState.passwordError,
+            keyboardType = KeyboardType.Password,
             visualTransformation = transformacion,
-            trailingIcon = iconoOjo,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            trailingIcon = iconoOjo
         )
-        OutlinedTextField(
-            value = confirmar,
-            onValueChange = { confirmar = it },
-            label = { Text("Confirmar contraseña") },
-            isError = confirmError != null,
-            supportingText = { if (confirmError != null) Text(confirmError) },
+        CampoTexto(
+            uiState.confirmar, viewModel::onConfirmarChange, "Confirmar contraseña",
+            uiState.confirmError,
+            keyboardType = KeyboardType.Password,
             visualTransformation = transformacion,
-            trailingIcon = iconoOjo,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
+            trailingIcon = iconoOjo
         )
 
         Button(
-            onClick = {
-                val cliente = ClienteDTO(
-                    id = 0,
-                    dni = dni,
-                    nombre = nombre,
-                    direccion = direccion,
-                    telefono = telefono,
-                    email = email,
-                    password = password
-                )
-                onRegister(cliente)
-            },
-            enabled = formularioValido,
+            onClick = viewModel::onRegistrarClick,
+            enabled = uiState.botonHabilitado,
             modifier = Modifier.fillMaxWidth()
         ) { Text("Registrarse") }
     }
+}
+
+@Composable
+fun CampoTexto(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    error: String?,
+    modifier: Modifier = Modifier,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    trailingIcon: @Composable (() -> Unit)? = null
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        isError = error != null,
+        supportingText = { if (error != null) Text(error) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        visualTransformation = visualTransformation,
+        trailingIcon = trailingIcon,
+        modifier = modifier.fillMaxWidth()
+    )
 }

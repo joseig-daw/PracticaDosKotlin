@@ -28,15 +28,10 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 NavHost(navController, startDestination = "login") {
                     composable("login") {
-                        LoginScreen(
-                            onLogin = { login -> Log.d("Login", login.toString()) },
-                            onGoToRegister = { navController.navigate("register") }
-                        )
+                        LoginScreen(onGoToRegister = { navController.navigate("register") })
                     }
                     composable("register") {
-                        RegistroScreen(
-                            onRegister = { cliente -> Log.d("Registro", cliente.toString()) }
-                        )
+                        RegistroScreen()
                     }
                 }
             }

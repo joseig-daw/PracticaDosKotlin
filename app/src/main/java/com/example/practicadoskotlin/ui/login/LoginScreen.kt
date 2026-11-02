@@ -1,10 +1,8 @@
 package com.example.practicadoskotlin.ui.login
 
-import android.graphics.Paint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,41 +22,34 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.practicadoskotlin.R
-import com.example.practicadoskotlin.modelo.LoginDTO
-import org.intellij.lang.annotations.JdkConstants
 
 @Composable
 fun LoginScreen(
-    onLogin: (LoginDTO) -> Unit = {},
-    onGoToRegister: () -> Unit = {}
+    onGoToRegister: () -> Unit = {},
+    viewModel: LoginViewModel = viewModel()
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val transformacion =
-        if (passwordVisible) VisualTransformation.None
-        else PasswordVisualTransformation(mask='*')
+        if (uiState.passwordVisible) VisualTransformation.None
+        else PasswordVisualTransformation(mask = '*')
 
     val iconoOjo: @Composable () -> Unit = {
-        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+        IconButton(onClick = viewModel::onTogglePasswordVisible) {
             Icon(
-                imageVector = if (passwordVisible) Icons.Filled.VisibilityOff
+                imageVector = if (uiState.passwordVisible) Icons.Filled.VisibilityOff
                 else Icons.Filled.Visibility,
-                contentDescription = if (passwordVisible) "Ocultar contraseña"
+                contentDescription = if (uiState.passwordVisible) "Ocultar contraseña"
                 else "Mostrar contraseña"
             )
         }
@@ -83,18 +74,18 @@ fun LoginScreen(
         Spacer(Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = email, onValueChange = {
-                email = it
-            },
+            value = uiState.email,
+            onValueChange = viewModel::onEmailChange,
             label = { Text("Email") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(Modifier.height(12.dp))
+
         OutlinedTextField(
-            value = password, onValueChange = {
-                password = it
-            },
+            value = uiState.password,
+            onValueChange = viewModel::onPasswordChange,
             label = { Text("Contraseña") },
             visualTransformation = transformacion,
             trailingIcon = iconoOjo,
@@ -105,9 +96,10 @@ fun LoginScreen(
         Spacer(Modifier.height(16.dp))
 
         Button(
-            onClick = { onLogin(LoginDTO(email, password)) },
+            onClick = viewModel::onLoginClick,
+            enabled = uiState.botonHabilitado,
             modifier = Modifier.fillMaxWidth()
-        ) { Text("Entrar") }
+        ) { Text("Login") }
 
         TextButton(onClick = onGoToRegister) {
             Text("¿No tienes cuenta? Regístrate")

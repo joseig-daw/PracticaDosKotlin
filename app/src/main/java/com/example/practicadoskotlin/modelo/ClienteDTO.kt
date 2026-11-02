@@ -1,4 +1,4 @@
-package com.example.pizzeria.modelo
+package com.example.practicadoskotlin.modelo
 
 data class ClienteDTO(
     val id: Int,
