@@ -1,5 +1,4 @@
 package com.example.practicadoskotlin.modelo
-
 data class ClienteDTO(
     val id: Int,
     val dni: String,
@@ -8,4 +7,5 @@ data class ClienteDTO(
     val telefono: String,
     val email: String,
     val password: String,
+    val pedidos: List<PedidoDTO> = emptyList()
     )

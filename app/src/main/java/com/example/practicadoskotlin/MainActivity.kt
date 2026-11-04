@@ -15,24 +15,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.compose.AppTheme
+import com.example.practicadoskotlin.ui.home.HomeScreen
 import com.example.practicadoskotlin.ui.login.LoginScreen
 import com.example.practicadoskotlin.ui.registro.RegistroScreen
-import com.example.practicadoskotlin.ui.theme.PracticaDosKotlinTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            PracticaDosKotlinTheme {   // el nombre que genere tu Theme.kt
+            AppTheme(
+            ) {
                 val navController = rememberNavController()
-                NavHost(navController, startDestination = "login") {
+                NavHost(navController, startDestination = "home") {
                     composable("login") {
                         LoginScreen(onGoToRegister = { navController.navigate("register") })
                     }
                     composable("register") {
                         RegistroScreen()
                     }
+                    composable("home") { HomeScreen() }
                 }
             }
         }
@@ -49,7 +52,7 @@ class MainActivity : ComponentActivity() {
     @Preview(showBackground = true)
     @Composable
     fun GreetingPreview() {
-        PracticaDosKotlinTheme {
+        AppTheme() {
             Greeting("Android")
         }
     }
