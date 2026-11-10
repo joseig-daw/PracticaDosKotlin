@@ -17,7 +17,10 @@ data class ItemCatalogo(
 
 data class HomeUiState(
     val cargando: Boolean = true,
-    val items: List<ItemCatalogo> = emptyList()
+    val items: List<ItemCatalogo> = emptyList(),
+
+    val totalProductos: Int = 0,
+    val productosAnadidos: Int? = null
 ) {
     val pizzas: List<ItemCatalogo> get() = items.filter { it.producto is PizzaDTO }
     val pastas: List<ItemCatalogo> get() = items.filter { it.producto is PastaDTO }

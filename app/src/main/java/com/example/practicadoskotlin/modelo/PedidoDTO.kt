@@ -6,8 +6,8 @@ import java.util.Date
 data class PedidoDTO(
     val id:Int,
     val fecha: Date,
-    val precioTotal: Float,
+    var precioTotal: Float,
     val estado: EstadoPedido,
     val cliente: ClienteDTO,
-    val lineaPedidos: List<LineaPedidoDTO> = mutableListOf()
+    val lineaPedidos: MutableList<LineaPedidoDTO> = mutableListOf()
 )
