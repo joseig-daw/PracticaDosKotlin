@@ -2,6 +2,7 @@ package com.example.practicadoskotlin.ui.home
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,7 +43,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -143,9 +146,11 @@ private fun LazyListScope.seccion(
 @Composable
 private fun CabeceraSeccion(tipo: TipoProducto, cantidad: Int) {
     val estilo = tipo.estilo()
+    val fondo = MaterialTheme.colorScheme.primaryContainer
+    val contenido = MaterialTheme.colorScheme.onPrimaryContainer
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = estilo.fondo,
+        color = fondo,
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 8.dp)
@@ -159,13 +164,13 @@ private fun CabeceraSeccion(tipo: TipoProducto, cantidad: Int) {
             Text(
                 tipo.titulo,
                 style = MaterialTheme.typography.titleMedium,
-                color = estilo.contenido
+                color = contenido
             )
             Spacer(Modifier.weight(1f))
             Text(
                 if (cantidad == 1) "1 producto" else "$cantidad productos",
                 style = MaterialTheme.typography.labelMedium,
-                color = estilo.contenido
+                color = contenido
             )
         }
     }
@@ -181,11 +186,11 @@ private fun ImagenProducto(tipo: TipoProducto) {
             .background(estilo.fondo),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = estilo.icono,
+        Image(
+            painter = painterResource(estilo.imagen),
             contentDescription = "Imagen genérica de ${tipo.singular.lowercase()}",
-            tint = estilo.contenido,
-            modifier = Modifier.size(40.dp)
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
         )
     }
 }

@@ -1,6 +1,8 @@
 package com.example.practicadoskotlin.ui.home
 
+import androidx.annotation.DrawableRes
 import androidx.compose.material.icons.Icons
+import com.example.practicadoskotlin.R
 import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.LocalPizza
 import androidx.compose.material.icons.filled.RamenDining
@@ -29,6 +31,7 @@ fun ProductoDTO.tipo(): TipoProducto = when (this) {
 
 data class EstiloTipo(
     val icono: ImageVector,
+    @DrawableRes val imagen: Int,
     val fondo: Color,
     val contenido: Color
 )
@@ -38,9 +41,18 @@ data class EstiloTipo(
 fun TipoProducto.estilo(): EstiloTipo {
     val c = MaterialTheme.colorScheme
     return when (this) {
-        TipoProducto.PIZZA -> EstiloTipo(Icons.Filled.LocalPizza, c.primaryContainer, c.onPrimaryContainer)
-        TipoProducto.PASTA -> EstiloTipo(Icons.Filled.RamenDining, c.secondaryContainer, c.onSecondaryContainer)
-        TipoProducto.BEBIDA -> EstiloTipo(Icons.Filled.LocalDrink, c.tertiaryContainer, c.onTertiaryContainer)
+        TipoProducto.PIZZA -> EstiloTipo(
+            Icons.Filled.LocalPizza, R.drawable.pizza,
+            c.primaryContainer, c.onPrimaryContainer
+        )
+        TipoProducto.PASTA -> EstiloTipo(
+            Icons.Filled.RamenDining, R.drawable.pasta,
+            c.secondaryContainer, c.onSecondaryContainer
+        )
+        TipoProducto.BEBIDA -> EstiloTipo(
+            Icons.Filled.LocalDrink, R.drawable.bebida,
+            c.tertiaryContainer, c.onTertiaryContainer
+        )
     }
 }
 
