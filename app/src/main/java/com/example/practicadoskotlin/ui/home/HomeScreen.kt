@@ -55,6 +55,26 @@ import com.example.practicadoskotlin.modelo.PastaDTO
 import com.example.practicadoskotlin.modelo.PizzaDTO
 import com.example.practicadoskotlin.modelo.ProductoDTO
 import com.example.practicadoskotlin.modelo.SIZE
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 
 private fun Double.euros(): String = "%.2f €".format(this)
 
@@ -96,9 +116,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
         }
 
         LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -130,14 +148,27 @@ private fun LazyListScope.seccion(
 ) {
     if (lista.isEmpty()) return
 
-    item { CabeceraSeccion(tipo, lista.size) }
-    items(lista, key = { it.producto.id }) { item ->
-        ProductoCard(
-            item = item,
-            onCantidadChange = { onCantidadChange(item.producto.id, it) },
-            onSizeChange = { onSizeChange(item.producto.id, it) },
-            onAnadirClick = { onAnadirClick(item.producto.id) }
-        )
+    item(key = "cabecera-${tipo.name}") {
+        Box(Modifier.padding(horizontal = 16.dp)) {
+            CabeceraSeccion(tipo, lista.size)
+        }
+    }
+
+    item(key = "fila-${tipo.name}") {
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(lista, key = { it.producto.id }) { item ->
+                ProductoCard(
+                    item = item,
+                    onCantidadChange = { onCantidadChange(item.producto.id, it) },
+                    onSizeChange = { onSizeChange(item.producto.id, it) },
+                    onAnadirClick = { onAnadirClick(item.producto.id) },
+                    modifier = Modifier.width(320.dp)
+                )
+            }
+        }
     }
 }
 
@@ -146,178 +177,315 @@ private fun LazyListScope.seccion(
 @Composable
 private fun CabeceraSeccion(tipo: TipoProducto, cantidad: Int) {
     val estilo = tipo.estilo()
-    val fondo = MaterialTheme.colorScheme.primaryContainer
-    val contenido = MaterialTheme.colorScheme.onPrimaryContainer
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = fondo,
+    val colores = MaterialTheme.colorScheme
+
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp)
+            .padding(top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        // Icono en círculo
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(colores.primary),
+            contentAlignment = Alignment.Center
         ) {
-            Icon(estilo.icono, contentDescription = null, tint = estilo.contenido)
+            Icon(estilo.icono, contentDescription = null, tint = colores.onPrimary)
+        }
+
+        // Título y contador
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 tipo.titulo,
-                style = MaterialTheme.typography.titleMedium,
-                color = contenido
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
             )
-            Spacer(Modifier.weight(1f))
             Text(
                 if (cantidad == 1) "1 producto" else "$cantidad productos",
-                style = MaterialTheme.typography.labelMedium,
-                color = contenido
+                style = MaterialTheme.typography.bodySmall,
+                color = colores.onSurfaceVariant
             )
+        }
+
+        // Pista de desplazamiento (solo si hay más de una tarjeta)
+        if (cantidad > 1) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "Desliza",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = colores.primary
+                )
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = colores.primary
+                )
+            }
         }
     }
 }
-
-@Composable
-private fun ImagenProducto(tipo: TipoProducto) {
-    val estilo = tipo.estilo()
-    Box(
-        modifier = Modifier
-            .size(72.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(estilo.fondo),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(estilo.imagen),
-            contentDescription = "Imagen genérica de ${tipo.singular.lowercase()}",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-    }
-}
-
-@Composable
-private fun EtiquetaTipo(tipo: TipoProducto) {
-    val estilo = tipo.estilo()
-    Surface(shape = RoundedCornerShape(6.dp), color = estilo.fondo) {
-        Text(
-            tipo.singular.uppercase(),
-            style = MaterialTheme.typography.labelSmall,
-            color = estilo.contenido,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-        )
-    }
-}
-
-// ---------- Tarjeta de producto ----------
 
 @Composable
 fun ProductoCard(
     item: ItemCatalogo,
     onCantidadChange: (Int) -> Unit,
     onSizeChange: (SIZE) -> Unit,
-    onAnadirClick: () -> Unit
+    onAnadirClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val tipo = item.producto.tipo()
-    val estilo = tipo.estilo()
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        border = BorderStroke(1.dp, estilo.fondo),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        modifier = modifier,
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
+        HeroProducto(tipo, item.precioUnitario)
+
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Imagen + etiqueta + nombre + precio
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ImagenProducto(tipo)
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    EtiquetaTipo(tipo)
-                    Text(item.producto.nombre, style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        item.precioUnitario.euros(),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
+            Text(
+                item.producto.nombre,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
 
-            DetalleProducto(item.producto)
+            InfoProducto(item.producto)
 
-            // Selector de tamaño (con nombres propios de cada tipo)
-            Text("Tamaño", style = MaterialTheme.typography.labelMedium)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SIZE.entries.forEach { size ->
-                    FilterChip(
-                        selected = item.size == size,
-                        onClick = { onSizeChange(size) },
-                        label = { Text(size.etiquetaPara(tipo)) }
-                    )
-                }
-            }
+            SelectorTamano(tipo, item.size, onSizeChange)
 
-            // Selector de cantidad + subtotal
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                IconButton(
-                    onClick = { onCantidadChange(item.cantidad - 1) },
-                    enabled = item.cantidad > 1
-                ) {
-                    Icon(Icons.Filled.Remove, contentDescription = "Quitar una unidad")
-                }
-                Text("${item.cantidad}", style = MaterialTheme.typography.titleMedium)
-                IconButton(
-                    onClick = { onCantidadChange(item.cantidad + 1) },
-                    enabled = item.cantidad < 10
-                ) {
-                    Icon(Icons.Filled.Add, contentDescription = "Añadir una unidad")
-                }
-                Spacer(Modifier.weight(1f))
-                Text(
-                    "Subtotal: ${item.subtotal.euros()}",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
+                SelectorCantidad(item.cantidad, onCantidadChange)
 
-            Button(
-                onClick = onAnadirClick,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(Icons.Filled.AddShoppingCart, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("Añadir al carrito")
+                Button(
+                    onClick = onAnadirClick,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(44.dp)
+                ) {
+                    Icon(Icons.Filled.AddShoppingCart, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Añadir")
+                }
             }
         }
     }
 }
 
+// Zona superior: imagen + etiqueta de tipo + precio
 @Composable
-private fun DetalleProducto(producto: ProductoDTO) {
-    when (producto) {
-        is PizzaDTO -> Ingredientes(producto.ingredientes)
-        is PastaDTO -> Ingredientes(producto.ingredientes)
-        is BebidaDTO -> Text("Bebida fría, se sirve en el tamaño elegido")
+private fun HeroProducto(tipo: TipoProducto, precio: Double) {
+    val estilo = tipo.estilo()
+    val colores = MaterialTheme.colorScheme
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(150.dp)
+            .background(
+                Brush.verticalGradient(
+                    listOf(colores.primaryContainer, colores.primaryContainer.copy(alpha = 0.55f))
+                )
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(estilo.imagen),
+            contentDescription = "Imagen genérica de ${tipo.singular.lowercase()}",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        )
+
+        // Etiqueta del tipo, arriba a la izquierda
+        Surface(
+            shape = RoundedCornerShape(50),
+            color = colores.surface.copy(alpha = 0.85f),
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    estilo.icono,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = colores.primary
+                )
+                Text(tipo.singular, style = MaterialTheme.typography.labelMedium)
+            }
+        }
+
+        // Precio, en la esquina inferior derecha
+        Surface(
+            shape = RoundedCornerShape(topStart = 20.dp),
+            color = colores.primary,
+            modifier = Modifier.align(Alignment.BottomEnd)
+        ) {
+            Text(
+                precio.euros(),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = colores.onPrimary,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
     }
 }
 
+// Descripción: ingredientes y alérgenos (o texto de bebida)
 @Composable
-private fun Ingredientes(ingredientes: List<IngredienteDTO>) {
-    Text("Ingredientes: ${ingredientes.joinToString(", ") { it.nombre }}")
+private fun InfoProducto(producto: ProductoDTO) {
+    val ingredientes = when (producto) {
+        is PizzaDTO -> producto.ingredientes
+        is PastaDTO -> producto.ingredientes
+        is BebidaDTO -> null
+    }
+
+    if (ingredientes == null) {
+        Text(
+            "Bebida fría. Se sirve en el tamaño elegido.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            minLines = 2,
+            maxLines = 2
+        )
+        return
+    }
+
+    Text(
+        ingredientes.joinToString(" · ") { it.nombre },
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        minLines = 2,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis
+    )
+
     val alergenos = ingredientes.flatMap { it.alergenos }.distinct()
     if (alergenos.isNotEmpty()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                Icons.Filled.Warning,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = MaterialTheme.colorScheme.error
+            )
+            Text(
+                "Alérgenos: ${alergenos.joinToString(", ")}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+// Selector de tamaño estilo "segmentado"
+@Composable
+private fun SelectorTamano(
+    tipo: TipoProducto,
+    seleccionado: SIZE,
+    onSizeChange: (SIZE) -> Unit
+) {
+    val colores = MaterialTheme.colorScheme
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(colores.surfaceVariant)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        SIZE.entries.forEach { size ->
+            val activo = size == seleccionado
+            val fondo by animateColorAsState(
+                if (activo) colores.primary else Color.Transparent,
+                label = "fondoTamano"
+            )
+            val texto by animateColorAsState(
+                if (activo) colores.onPrimary else colores.onSurfaceVariant,
+                label = "textoTamano"
+            )
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(fondo)
+                    .selectable(
+                        selected = activo,
+                        onClick = { onSizeChange(size) },
+                        role = Role.RadioButton
+                    )
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    size.etiquetaPara(tipo),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = texto,
+                    fontWeight = if (activo) FontWeight.Bold else FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+// Selector de cantidad en forma de píldora
+@Composable
+private fun SelectorCantidad(cantidad: Int, onCantidadChange: (Int) -> Unit) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(horizontal = 4.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        FilledTonalIconButton(
+            onClick = { onCantidadChange(cantidad - 1) },
+            enabled = cantidad > 1,
+            modifier = Modifier.size(34.dp)
+        ) {
+            Icon(Icons.Filled.Remove, contentDescription = "Quitar una unidad", modifier = Modifier.size(18.dp))
+        }
         Text(
-            "Alérgenos: ${alergenos.joinToString(", ")}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.error
+            "$cantidad",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(min = 32.dp)
         )
+        FilledTonalIconButton(
+            onClick = { onCantidadChange(cantidad + 1) },
+            enabled = cantidad < 10,
+            modifier = Modifier.size(34.dp)
+        ) {
+            Icon(Icons.Filled.Add, contentDescription = "Añadir una unidad", modifier = Modifier.size(18.dp))
+        }
     }
 }

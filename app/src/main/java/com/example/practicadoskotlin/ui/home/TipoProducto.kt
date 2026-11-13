@@ -47,7 +47,7 @@ fun TipoProducto.estilo(): EstiloTipo {
         )
         TipoProducto.PASTA -> EstiloTipo(
             Icons.Filled.RamenDining, R.drawable.pasta,
-            c.secondaryContainer, c.onSecondaryContainer
+            c.primaryContainer, c.onSecondaryContainer
         )
         TipoProducto.BEBIDA -> EstiloTipo(
             Icons.Filled.LocalDrink, R.drawable.bebida,
@@ -66,7 +66,7 @@ fun SIZE.etiquetaPara(tipo: TipoProducto): String = when (tipo) {
     TipoProducto.PASTA -> when (this) {
         SIZE.PEQUENIO -> "Individual"
         SIZE.MEDIANO -> "Normal"
-        SIZE.GRANDE -> "Para compartir"
+        SIZE.GRANDE -> "compartir"
     }
     TipoProducto.BEBIDA -> when (this) {
         SIZE.PEQUENIO -> "33 cl"
